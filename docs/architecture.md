@@ -38,6 +38,30 @@ Record your plan here before editing code.
 - Leaderboard approach:
 - Workout suggestions approach:
 
+## Current status summary
+
+### Tier boundaries
+
+- Presentation tier: React 19, Vite, and the shared API client in `octofit-tracker/frontend/src`; this layer should render activity data, team data, leaderboard rankings, and workout suggestions while showing loading, empty, and failure states.
+- Logic tier: Express + TypeScript routes and services in `octofit-tracker/backend/src`; this layer owns validation, 4xx error handling, data shaping, leaderboard calculations, and workout recommendation logic.
+- Data tier: Mongoose models and seed logic in `octofit-tracker/backend/src/models` and `src/scripts/seed.ts`; this layer owns schema contracts, seeded fixtures, and MongoDB persistence rules.
+
+### Current failing tests
+
+The current implementation is intentionally incomplete, and the failing tests cluster around the contract gaps rather than UI polish:
+
+- Data contract tests are failing because the models are not enforced correctly and the seed process is not idempotent enough for the expected data fixtures.
+- API contract tests are failing because `createActivity`, `createTeam`, `getLeaderboard`, and `suggestWorkouts` in `octofit-tracker/backend/src/services/octofitService.ts` return stubs or 501 responses instead of real validation and business logic.
+- Frontend contract tests are failing because the React app still renders placeholder text and never fetches or renders the real API contract data in `octofit-tracker/frontend/src/App.tsx`.
+
+### Smallest safe implementation order
+
+1. Data tier first: complete the schema contracts and seed behavior so MongoDB-backed fixtures match the expected User, Team, Activity, and Workout models.
+2. Logic tier second: implement validation and business logic in the backend service layer and routes so the API returns correct 2xx/4xx responses, computed activity points, ordered leaderboard totals, and workout suggestions by user pattern.
+3. Presentation tier last: implement the UI fetch and render flow to surface the API data and the required loading, empty, and accessible error states once the backend contract is stable.
+
+This ordering is the lowest-risk path because each tier depends on the one below it: the frontend is only reliable once the data and API contracts are correct.
+
 ## Test plan
 
 Record the commands you run and what each failure means.
